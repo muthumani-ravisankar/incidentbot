@@ -1,0 +1,44 @@
+
+response = Map();
+text = "";
+// Greeting logic
+if(message.containsIgnoreCase("hi") || message.containsIgnoreCase("hello") || message.containsIgnoreCase("hey"))
+{
+	text = "👋 Hi there! I'm your *Incident CoPilot Bot*. How may I help you today?";
+	response.put("suggestions",{"list":{{"text":"Help"}}});
+}
+// User wants help
+else if(message.containsIgnoreCase("help"))
+{
+	text = "Here’s what I can currently help you with:\n\n" + "You can use a Actions like this:\n" + "🚨 */incident create* – Create an incident war-room\n" + "📋 */incident list* – Show all incident channels\n" + "✔ */incident resolve* – (Coming Soon) Mark an incident as resolved\n" + "❌ */incident delete* – (Coming Soon) Close / archive a war-room\n" + "You can use a Flag like this:\n" + "👥 */incident -madd* – (Future) Auto-add available on-call engineers\n\n" + "More intelligence is being added day by day!";
+}
+// Normalize message
+msg = message.toLowerCase();
+// Respond only to messages that mention "incident" or "/incident"
+if(msg.contains("/incident") || msg.contains("incident"))
+{
+	text = "🛠 **Incident CoPilot Bot**\n\n";
+	text = text + "Here’s what the `/incident` command can do:\n\n";
+	text = text + "**Available Commands:**\n";
+	text = text + "• `/incident create` – Create an incident war room (available now)\n";
+	text = text + "• `/incident list` – Show all active war rooms (available now)\n";
+	text = text + "• `/incident resolve` – Resolve incidents (partially implemented)\n";
+	text = text + "• `/incident delete` – Delete/Archive channels (coming soon)\n";
+	text = text + "• `/incident -madd` – Auto-add members based on presence (in progress)\n\n";
+	text = text + "**Upcoming Features:**\n";
+	text = text + "• Automated on-call assignment\n";
+	text = text + "• Auto-presence based member selection\n";
+	text = text + "• Timeline generation for each incident\n";
+	text = text + "• Smart message actions inside channels\n\n";
+	text = text + "• Auto resolution reports\n";
+	text = text + "• SLA Timer & Breach Alerts\n\n";
+	text = text + "• Incident Severity Classification\n\n";
+	text = text + "Feel free to use `/incident create <name>` to test the working features!";
+}
+else
+{
+	// default mild fallback
+	text = "Hi! I’m your **Incident CoPilot Bot**.\nUse `/incident` to get started!";
+}
+response.put("text",text);
+return response;

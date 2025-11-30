@@ -1,0 +1,30 @@
+
+// Use the below given instant button's syntax to see how the function code is invoked! 
+// [What's this?](invoke.function|joinChannel)
+response = Map();
+channelData = arguments.get("key");
+response.put("text",channelData.get("id"));
+channelId = channelData.get("id");
+channelName = channelData.get("name");
+creatorName = channelData.get("creatorName");
+url_endpoint = "https://cliq.zoho.in/api/v2/channels/" + channelId + "/join";
+// Invoke Join URL Task 
+join_response = invokeurl
+[
+	url :url_endpoint
+	type :POST
+	connection:"incidentbot"
+];
+// If Joined is True
+if(join_response.get("joined") == True)
+{
+	info "Successfully joined channel " + channelId;
+	return {"text":"You've been added to the channel **" + channelName + "**. created by " + creatorName};
+}
+else
+{
+	// Failure: Handle errors (e.g., already a member, channel not found)
+	info "Error joining channel: " + join_response.toString();
+	return {"text":"Failed to join channel. Please check permissions."};
+}
+return join_response;

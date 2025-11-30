@@ -1,0 +1,106 @@
+
+info user;
+info arguments;
+userFirstName = user.get("first_name");
+response = Map();
+response.put("text","Incident created successfully! :smile:");
+// if starts with create action 
+if(arguments.startsWith("create"))
+{
+	incidentName = arguments.getSuffix("create");
+	if(incidentName == null || incidentName == "")
+	{
+		resCard = {"text":"Please provide an incident name."};
+		return resCard;
+	}
+	// Format channel name 
+	cleanChannelName = "Inc" + incidentName.toLowerCase().replaceAll(" ","-");
+	// Search existing channels
+	searchResp = invokeurl
+	[
+		url :"https://cliq.zoho.in/api/v2/channels?name=" + cleanChannelName
+		type :GET
+		connection:"incidentbot"
+	];
+	if(searchResp.get("channels").length() == 0)
+	{
+		resCard = {"text":"The incident you mentioned doesn't exist, you can create a new war room by clicking a create button","bot":{"name":"IncidentCoPilotBot"},"card":{"title":"Incident doesn't exist"},"buttons":{{"label":"create","hint":"","action":{"type":"invoke.function","data":{"name":"createChannel"}},"key":cleanChannelName}}};
+		return resCard;
+	}
+	channelData = searchResp.get("channels").get(0);
+	channelName = channelData.get("name");
+	creatorName = channelData.get("creator_name");
+	channelId = channelData.get("channel_id");
+	channelMap = Map();
+	channelMap.put("name",channelName);
+	channelMap.put("id",channelId);
+	channelMap.put("creatorName",creatorName);
+	joinCard = {"text":"The incident you mentioned is noticed and the war room have been created by " + creatorName + ", You can join now.","bot":{"name":"IncidentCoPilotBot"},"card":{"title":"Join Channel"},"buttons":{{"label":"Join Now","hint":"","type":"+","action":{"type":"invoke.function","data":{"name":"joinChannel"}},"key":channelMap}}};
+	response.put("text",channelData.get("creator_name"));
+	return joinCard;
+}
+// if starts with list action
+if(arguments.startsWith("list"))
+{
+	url = "https://cliq.zoho.in/api/v2/channels";
+	// Call GET /channels
+	resp = invokeurl
+	[
+		url :url
+		type :GET
+		connection:"incidentbot"
+	];
+	channels = resp.get("channels");
+	// Loop to build text blocks
+	data_list = List();
+	for each  ch in channels
+	{
+		if(ch.get("name").startsWith("#Inc") && !ch.get("name").endsWith("-Resolved"))
+		{
+			item = {"channel name":ch.get("name"),"channel id":ch.get("channel_id")};
+			data_list.add(item);
+		}
+	}
+	resp = {"text":"You can copy the channel Id and do more stuff with that.","bot":{"name":"IncidentCoPilotBot"},"card":{"title":"Total " + data_list.size() + " number of war rooms"},"slides":{{"type":"table","title":"List of war room","data":{"headers":{"channel name","channel id"},"rows":data_list}}}};
+	return resp;
+}
+// if starts with resolve action 
+if(arguments.startsWith("resolve"))
+{
+	resCard = {"type":"form","title":"Resolve War Room","name":"resolveForm","hint":"Provide the channel ID to Resolve, use list action to get ID","button_label":"Submit","inputs":{{"label":"Channel ID","name":"channelId","placeholder":"P962527000893022024","hint":"Use /incident list action to get channel Id","min_length":"0","max_length":"25","mandatory":false,"type":"text"}},"action":{"type":"invoke.function","name":"resolveChannel"}};
+	return resCard;
+}
+// if starts with delete action 
+if(arguments.startsWith("delete"))
+{
+	resCard = {"type":"form","title":"Delete War Room","name":"resolveForm","hint":"Provide the channel ID to Delete, use list action to get ID","button_label":"Submit","inputs":{{"label":"Channel ID","name":"channelId","placeholder":"P962527000893022024","hint":"Use /incident list action to get channel Id","min_length":"0","max_length":"25","mandatory":false,"type":"text"}},"action":{"type":"invoke.function","name":"deleteChannel"}};
+	return resCard;
+}
+//if incident has an flag -madd
+if(arguments.startsWith("-madd"))
+{
+	resCard = {"type":"form","title":"Add members ","name":"addMembers","button_label":"Submit","inputs":{{"label":"Channel Id","name":"channelId","placeholder":"P740183000628028529","hint":"use '/incident list' action to get Id","min_length":"0","max_length":"25","mandatory":true,"type":"text"},{"label":"Email Id","name":"emailId","placeholder":"user@domain.com","min_length":"0","max_length":"40","mandatory":true,"type":"text"}},"action":{"type":"invoke.function","name":"addMembers"}};
+	return resCard;
+}
+if(arguments.startsWith("test"))
+{
+	url = "https://cliq.zoho.in/api/v2/channels";
+	// Call GET /channels
+	resp = invokeurl
+	[
+		url :url
+		type :GET
+		connection:"incidentbot"
+	];
+	channels = resp.get("channels");
+	data_list = List();
+	for each  ch in channels
+	{
+		item = {"channel name":ch.get("name"),"Unique name":ch.get("unique_name")};
+		data_list.add(item);
+	}
+	resCard = {"text":data_list};
+	return resCard;
+}
+usageCard = {"text":"Usage:  /incident <create> <list> <resolve> <delete> \nOr use flags like:\n -madd\n"};
+return usageCard;

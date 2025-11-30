@@ -1,0 +1,31 @@
+
+response = Map();
+formValues = form.get("values");
+channelId = formValues.get("channelId");
+//check if the channel exist or not
+checkResp = invokeurl
+[
+	url :"https://cliq.zoho.in/api/v2/channels/" + channelId
+	type :GET
+	connection:"incidentbot"
+];
+//if condition to check
+if(checkResp.get("code") != null && checkResp.get("code") == "request_url_invalid")
+{
+	resCard = {"text":"Looks like you provided invalid format of channel Id"};
+	return resCard;
+}
+// update Channel using Cliq API
+resolvedChannelName = checkResp.get("name") + "-Resolved";
+channelPayload = Map();
+channelPayload.put("name",resolvedChannelName);
+channelJson = channelPayload.toString();
+updateResp = invokeurl
+[
+	url :" https://cliq.zoho.in/api/v2/channels/" + channelId
+	type :PUT
+	parameters:channelJson
+	connection:"incidentbot"
+];
+resCard = {"text":"War room " + checkResp.get("name") + " has been Resolved with the name of " + resolvedChannelName + ".","bot":{"name":"IncidentCoPilotBot"},"card":{"title":"War room Resolved !"}};
+return resCard;

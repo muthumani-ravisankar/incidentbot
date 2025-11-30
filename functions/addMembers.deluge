@@ -1,0 +1,22 @@
+
+formValues = form.get("values");
+channelId = formValues.get("channelId");
+userEmail = formValues.get("emailId");
+//add members with user id
+memberPayload = Map();
+memberPayload.put("email_ids",{userEmail});
+memberJson = memberPayload.toString();
+response = invokeurl
+[
+	url :"https://cliq.zoho.in/api/v2/channels/" + channelId + "/members"
+	type :POST
+	parameters:memberJson
+	connection:"incidentbot"
+];
+if(response.get("code") == null)
+{
+	rescard = {"text":"User " + userEmail + " added successfully to the channel " + channelId};
+	return rescard;
+}
+rescard = {"text":"Error adding a member:\n" + response.get("code")};
+return rescard;

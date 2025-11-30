@@ -1,0 +1,78 @@
+
+// Use the below given instant button's syntax to see how the function code is invoked! 
+// [What's this?](invoke.function|createChannel)
+info arguments;
+incidentName = arguments.get("key").replaceFirst("Inc","").replaceFirst("^-","").replaceAll("-"," ").trim();
+// Create war room Channel using Cliq API
+channelPayload = Map();
+channelPayload.put("name",arguments.get("key"));
+channelPayload.put("level","private");
+channelPayload.put("description","Incident War Room for: " + incidentName);
+channelJson = channelPayload.toString();
+response = invokeurl
+[
+	url :"https://cliq.zoho.in/api/v2/channels"
+	type :POST
+	parameters:channelJson
+	connection:"incidentbot"
+];
+channelName = response.get("name");
+creatorName = response.get("creator_name");
+channelId = response.get("channel_id");
+// Add available users to the War room
+if(channelId != null)
+{
+	//get all uers from the org
+	getOrgUsersUrl = "https://cliq.zoho.in/api/v2/users";
+	resp = invokeurl
+	[
+		url :getOrgUsersUrl
+		type :GET
+		connection:"incidentbot"
+	];
+	//Get all users id's
+	userData = resp.get("data");
+	userIdList = List();
+	for each  u in userData
+	{
+		userIdList.add(u.get("id"));
+	}
+	//From that get only available users id's
+	availableUsers = List();
+	for each  userId in userIdList
+	{
+		url = "https://cliq.zoho.in/api/v2/users/" + userId + "?fields=chat_status";
+		resp = invokeurl
+		[
+			url :url
+			type :GET
+			connection:"incidentbot"
+		];
+		userData = resp.get("data");
+		if(userData.containsKey("text"))
+		{
+			status = userData.get("text");
+			if(status == "Available")
+			{
+				availableUsers.add(userId);
+			}
+		}
+	}
+	//add members with user id
+	memberPayload = Map();
+	memberPayload.put("user_ids",availableUsers);
+	memberJson = memberPayload.toString();
+	response = invokeurl
+	[
+		url :"https://cliq.zoho.in/api/v2/channels/" + channelId + "/members"
+		type :POST
+		parameters:memberJson
+		connection:"incidentbot"
+	];
+	//TODO:implement team , and add members based on the team and availability
+	//here, available members have been added automatically to the channel, 
+	//And if we want to add member we could call flag -madd in slash command
+}
+// Return a card to user
+card = {"text":"Your war has been created, \nAnd you can collaborate now.The war room name is " + channelName + "","bot":{"name":"IncidentCoPilotBot"},"card":{"title":"War room created successfully!"}};
+return card;
