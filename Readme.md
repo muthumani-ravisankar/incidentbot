@@ -6,6 +6,9 @@ It is designed to help teams respond to operational issues faster by providing *
 This project was created as part of the **Zoho Cliqtrix Hackathon**, where the goal is to build a real-world  
 automation or productivity extension using Zoho Cliq’s developer tools.
 
+![Incident Bot Screenshot](https://github.com/muthumani-ravisankar/incidentbot/blob/main/images/Screenshot%202025-11-30%20175542.png)
+
+
 ---
 
 ## 🚀 Why This Project?
